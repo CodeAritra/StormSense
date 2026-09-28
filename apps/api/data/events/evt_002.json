@@ -1,0 +1,14 @@
+{
+  "id": "evt_002",
+  "title": "Scattered convective storms (South Bengal)",
+  "description": "Developing multicellular storm cells across Bardhaman and Bankura, replay",
+  "n_frames": 49,
+  "frame_step_min": 5,
+  "bounds": {
+    "west": 86.6,
+    "south": 20.85,
+    "east": 90.1,
+    "north": 24.29
+  },
+  "start_time_utc": "2020-05-18T14:30:00Z"
+}

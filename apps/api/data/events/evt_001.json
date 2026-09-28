@@ -1,0 +1,14 @@
+{
+  "id": "evt_001",
+  "title": "Nor'wester demo event (Kolkata corridor)",
+  "description": "Severe convective event crossing Hooghly, Howrah, and Kolkata, replay",
+  "n_frames": 49,
+  "frame_step_min": 5,
+  "bounds": {
+    "west": 86.6,
+    "south": 20.85,
+    "east": 90.1,
+    "north": 24.29
+  },
+  "start_time_utc": "2019-07-10T09:00:00Z"
+}

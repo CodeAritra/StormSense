@@ -1,0 +1,235 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "kolkata",
+        "name_en": "Kolkata",
+        "name_bn": "কলকাতা",
+        "name_hi": "कोलकाता",
+        "population": 4496694,
+        "farmland_pct": 0.02
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.28, 22.48],
+            [88.42, 22.48],
+            [88.44, 22.63],
+            [88.30, 22.63],
+            [88.28, 22.48]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "north_24_parganas",
+        "name_en": "North 24 Parganas",
+        "name_bn": "উত্তর ২৪ পরগনা",
+        "name_hi": "उत्तर 24 परगना",
+        "population": 10009781,
+        "farmland_pct": 0.54
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.42, 22.48],
+            [88.95, 22.48],
+            [88.98, 22.95],
+            [88.44, 22.95],
+            [88.42, 22.48]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "south_24_parganas",
+        "name_en": "South 24 Parganas",
+        "name_bn": "দক্ষিণ ২৪ পরগনা",
+        "name_hi": "दक्षिण 24 परगना",
+        "population": 8161961,
+        "farmland_pct": 0.62
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.10, 21.60],
+            [88.95, 21.60],
+            [88.95, 22.48],
+            [88.25, 22.48],
+            [88.10, 21.60]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "howrah",
+        "name_en": "Howrah",
+        "name_bn": "হাওড়া",
+        "name_hi": "हावड़ा",
+        "population": 4850029,
+        "farmland_pct": 0.38
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [87.95, 22.40],
+            [88.28, 22.40],
+            [88.30, 22.70],
+            [88.00, 22.70],
+            [87.95, 22.40]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "hooghly",
+        "name_en": "Hooghly",
+        "name_bn": "হুগলি",
+        "name_hi": "हुगली",
+        "population": 5519145,
+        "farmland_pct": 0.68
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [87.85, 22.70],
+            [88.44, 22.70],
+            [88.45, 23.10],
+            [87.85, 23.10],
+            [87.85, 22.70]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "nadia",
+        "name_en": "Nadia",
+        "name_bn": "নদিয়া",
+        "name_hi": "नदिया",
+        "population": 5167600,
+        "farmland_pct": 0.73
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [88.35, 22.95],
+            [88.85, 22.95],
+            [88.85, 23.60],
+            [88.35, 23.60],
+            [88.35, 22.95]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "purba_medinipur",
+        "name_en": "Purba Medinipur",
+        "name_bn": "পূর্ব মেদিনীপুর",
+        "name_hi": "पूर्व मेदिनीपुर",
+        "population": 5095875,
+        "farmland_pct": 0.65
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [87.50, 21.60],
+            [88.10, 21.60],
+            [88.10, 22.40],
+            [87.50, 22.40],
+            [87.50, 21.60]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "paschim_medinipur",
+        "name_en": "Paschim Medinipur",
+        "name_bn": "পশ্চিম মেদিনীপুর",
+        "name_hi": "पश्चिम मेदिनीपुर",
+        "population": 5913457,
+        "farmland_pct": 0.71
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [86.75, 21.80],
+            [87.50, 21.80],
+            [87.70, 22.70],
+            [86.75, 22.70],
+            [86.75, 21.80]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "purba_bardhaman",
+        "name_en": "Purba Bardhaman",
+        "name_bn": "পূর্ব বর্ধমান",
+        "name_hi": "पूर्व बर्धमान",
+        "population": 4835532,
+        "farmland_pct": 0.77
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [87.50, 23.00],
+            [88.35, 23.00],
+            [88.35, 23.65],
+            [87.50, 23.65],
+            [87.50, 23.00]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "bankura",
+        "name_en": "Bankura",
+        "name_bn": "বাঁকুড়া",
+        "name_hi": "बांकुड़ा",
+        "population": 3596674,
+        "farmland_pct": 0.69
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [86.70, 22.70],
+            [87.50, 22.70],
+            [87.50, 23.45],
+            [86.70, 23.45],
+            [86.70, 22.70]
+          ]
+        ]
+      }
+    }
+  ]
+}
