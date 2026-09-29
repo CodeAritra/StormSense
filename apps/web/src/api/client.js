@@ -59,11 +59,11 @@ export const api = {
   getMetrics: () => request('/api/metrics'),
   getDistricts: () => request('/api/districts'),
 
-  // Overlay URL helper - returns relative path so Vite proxy handles it same-origin
+  // Overlay URL helper - prepends API_BASE for Docker / standalone builds
   getOverlayUrl: (relativePath) => {
     if (!relativePath) return '';
     if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) return relativePath;
-    return relativePath;
+    return `${API_BASE}${relativePath}`;
   },
 
   // WebSocket connection helper

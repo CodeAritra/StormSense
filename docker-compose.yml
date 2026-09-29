@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build:
@@ -8,11 +6,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MODEL_BACKEND=mock
+      - MODEL_BACKEND=onnx
       - REPLAY_TICK_SECONDS=2.0
       - API_PORT=8000
     volumes:
-      - ./models:/models
+      - ./models:/app/models
       - ./apps/api/data:/app/apps/api/data
     restart: unless-stopped
 

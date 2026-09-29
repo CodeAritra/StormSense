@@ -2,8 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Only install libgomp1 (required for onnxruntime OpenMP threading) without heavy compilers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
