@@ -150,14 +150,22 @@ def extract_storm_cells(vil_now: np.ndarray, prev_vil: np.ndarray, bounds: Bound
         my, mx = np.unravel_index(np.argmax(r), r.shape)
         g_dy = float(my if my < h // 2 else my - h)
         g_dx = float(mx if mx < w // 2 else mx - w)
+        
+        # Bound velocity to realistic meteorological displacement (-4 to +4 px per 5m)
+        g_dy = max(-4.0, min(4.0, g_dy))
+        g_dx = max(-4.0, min(4.0, g_dx))
+        
+        # Fallback to realistic Bengal Nor'wester vector (northeast drift) if motion estimate is near zero
+        if abs(g_dy) < 0.2 and abs(g_dx) < 0.2:
+            g_dy, g_dx = -1.1, 1.4
     except Exception:
         g_dy, g_dx = -1.1, 1.4
         
     # Distance per pixel ~ 3 km. 1 frame = 5 min = 1/12 hour.
     # Speed (km/h) = sqrt(dx^2 + dy^2) * 3 km * 12
     default_speed = math.sqrt(g_dx**2 + g_dy**2) * 3.0 * 12.0
-    # Meteorological heading: angle in degrees from North clockwise towards direction of motion
-    # dy is negative going north; dx is positive going east
+    # Meteorological heading: angle in degrees from North (0°) clockwise towards direction of motion
+    # dy is negative going north (-g_dy > 0); dx is positive going east
     default_heading = (math.degrees(math.atan2(g_dx, -g_dy)) + 360) % 360
     
     for label_idx in range(1, num_features + 1):

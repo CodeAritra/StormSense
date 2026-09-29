@@ -46,7 +46,9 @@ class ForecastResponse(BaseModel):
     lead_minutes: List[int]
     bounds: Bounds
     overlays: Dict[str, Any]
-    storm_cells: List[StormCell]
+    storm_cells: List[StormCell] = []
+    storm_cells_now: Optional[List[StormCell]] = None
+    storm_cells_by_lead: Optional[List[List[StormCell]]] = None
     explain: Dict[str, float]
     timing: Timing
     backend: str

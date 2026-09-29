@@ -68,37 +68,41 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 px-4 bg-storm-950/90 border-b border-slate-800 flex items-center justify-between gap-4 z-30 select-none">
+    <header className="h-16 px-3 md:px-5 bg-storm-950/95 border-b border-slate-800/90 flex items-center justify-between gap-2 md:gap-4 z-30 select-none backdrop-blur-md">
       {/* Brand & Identity */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20 text-white font-bold text-lg">
+      <div
+        className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group"
+        onClick={() => setCurrentPage('dashboard')}
+        title="Go to Live Dashboard"
+      >
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md shadow-cyan-500/20 text-white font-bold text-base group-hover:scale-105 transition-transform">
           ⚡
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-sm md:text-base font-bold tracking-tight text-white flex items-center gap-1 font-sans">
               StormSense
-              <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              <span className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                 AI Nowcast
               </span>
             </h1>
           </div>
-          <p className="text-[11px] text-slate-400 font-medium">
+          <p className="text-[10px] text-slate-400 font-medium hidden md:block leading-tight">
             Ministry of Earth Sciences / IMD Prototype
           </p>
         </div>
       </div>
 
       {/* Replay Controls & Catalog */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Event selector */}
-        <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-300">
-          <span className="text-slate-400 font-medium">Event:</span>
+        <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 shadow-inner">
+          <span className="text-slate-400 font-medium text-[11px] hidden sm:inline">Event:</span>
           <select
             id="event-select"
             value={selectedEventId}
             onChange={handleEventChange}
-            className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+            className="bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer max-w-[110px] sm:max-w-[160px] truncate"
           >
             {events.length > 0 ? (
               events.map((evt) => (
@@ -115,11 +119,11 @@ export default function Header() {
         </div>
 
         {/* Play/Pause & Speed */}
-        <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 rounded-lg p-0.5">
           <button
             id="btn-play-pause"
             onClick={handleTogglePlay}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
               isPlaying
                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
                 : 'bg-cyan-500 text-slate-950 hover:bg-cyan-400 shadow-sm shadow-cyan-500/30'
@@ -129,23 +133,23 @@ export default function Header() {
             {isPlaying ? (
               <>
                 <Pause className="w-3.5 h-3.5 fill-current" />
-                <span>Pause</span>
+                <span className="hidden sm:inline">Pause</span>
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Play Replay</span>
+                <span className="hidden sm:inline">Play</span>
               </>
             )}
           </button>
 
           {/* Speed Buttons */}
-          <div className="flex items-center border-l border-slate-800 pl-1 ml-1">
+          <div className="hidden sm:flex items-center border-l border-slate-800 pl-1 ml-0.5">
             {[1.0, 2.0, 4.0].map((s) => (
               <button
                 key={s}
                 onClick={() => handleSpeedChange(s)}
-                className={`px-2 py-1 text-[11px] font-mono rounded transition-colors ${
+                className={`px-1.5 py-1 text-[11px] font-mono rounded transition-colors ${
                   speed === s
                     ? 'bg-slate-800 text-cyan-400 font-bold'
                     : 'text-slate-400 hover:text-slate-200'
@@ -156,30 +160,32 @@ export default function Header() {
             ))}
           </div>
 
-          <div className="px-2 text-[11px] font-mono text-slate-400 border-l border-slate-800">
+          <div className="px-1.5 text-[10px] font-mono text-slate-400 border-l border-slate-800 hidden xs:block">
             F:{currentIndex}/{maxIndex}
           </div>
         </div>
 
         {/* Simulation Clock */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+        <div className="hidden xl:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
           <Clock className="w-3.5 h-3.5 text-cyan-400" />
           <div className="flex items-baseline gap-1.5 font-mono">
-            <span className="font-bold text-white text-sm">{istString}</span>
-            <span className="text-slate-400 text-[11px]">({utcString})</span>
+            <span className="font-bold text-white text-xs">{istString}</span>
+            <span className="text-slate-400 text-[10px]">({utcString})</span>
           </div>
         </div>
       </div>
 
       {/* Latency & Badges & Page Switcher */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Latency badge */}
-        <LatencyBadge timing={forecast?.timing} backend={backend} />
+        <div className="hidden sm:block">
+          <LatencyBadge timing={forecast?.timing} backend={backend} />
+        </div>
 
         {/* Backend badge */}
         <div
           id="backend-badge"
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-semibold border ${
+          className={`hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono font-semibold border flex-shrink-0 ${
             backend === 'onnx'
               ? 'bg-violet-950/40 text-violet-300 border-violet-700/60'
               : 'bg-cyan-950/40 text-cyan-300 border-cyan-800/60'
@@ -195,14 +201,14 @@ export default function Header() {
         </div>
 
         {/* Page Switcher */}
-        <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs">
+        <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 text-xs flex-shrink-0 shadow-sm">
           <button
             id="tab-dashboard"
             onClick={() => setCurrentPage('dashboard')}
-            className={`px-3 py-1 rounded-md font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
               currentPage === 'dashboard'
                 ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             Dashboard
@@ -210,14 +216,15 @@ export default function Header() {
           <button
             id="tab-metrics"
             onClick={() => setCurrentPage('metrics')}
-            className={`flex items-center gap-1 px-3 py-1 rounded-md font-medium transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md font-semibold transition-all cursor-pointer ${
               currentPage === 'metrics'
                 ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5" />
-            <span>AI vs Baseline</span>
+            <span className="hidden sm:inline">AI vs Baseline</span>
+            <span className="sm:hidden">Metrics</span>
           </button>
         </div>
       </div>

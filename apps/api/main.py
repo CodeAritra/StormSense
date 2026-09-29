@@ -240,7 +240,7 @@ def run_forecast(event_id: str, index: int) -> Dict[str, Any]:
     lght_pred = pred_res["lightning"]    # [12, 128, 128]
     explain = pred_res.get("explain", {"radar": 0.55, "satellite": 0.25, "lightning": 0.20})
     
-    # Render timing simulation & storm cell extraction
+    # Render timing simulation & storm cell extraction for all 12 lead steps + T0
     t_render_start = time.perf_counter()
     vil_now = past_vil[-1]
     prev_vil = past_vil[-2] if len(past_vil) > 1 else vil_now
@@ -250,7 +250,13 @@ def run_forecast(event_id: str, index: int) -> Dict[str, Any]:
         east=DEFAULT_BOUNDS.east,
         north=DEFAULT_BOUNDS.north
     )
-    storm_cells = extract_storm_cells(vil_now, prev_vil, bounds)
+    storm_cells_now = extract_storm_cells(vil_now, prev_vil, bounds)
+    storm_cells_by_lead = []
+    for k in range(12):
+        prev_k = vil_pred[k-1] if k > 0 else vil_now
+        cells_k = extract_storm_cells(vil_pred[k], prev_k, bounds)
+        storm_cells_by_lead.append([c.model_dump() for c in cells_k])
+
     t_render_end = time.perf_counter()
     render_ms = round((t_render_end - t_render_start) * 1000, 2)
     
@@ -286,7 +292,9 @@ def run_forecast(event_id: str, index: int) -> Dict[str, Any]:
         "lead_minutes": lead_minutes,
         "bounds": bounds.model_dump(),
         "overlays": overlay_urls,
-        "storm_cells": [c.model_dump() for c in storm_cells],
+        "storm_cells": [c.model_dump() for c in storm_cells_now],
+        "storm_cells_now": [c.model_dump() for c in storm_cells_now],
+        "storm_cells_by_lead": storm_cells_by_lead,
         "explain": explain,
         "timing": {
             "inference_ms": inference_ms,

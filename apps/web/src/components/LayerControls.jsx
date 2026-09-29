@@ -11,12 +11,42 @@ export default function LayerControls() {
   } = useStore();
 
   const layers = [
-    { key: 'predictedRadar', label: 'Predicted Radar', color: 'bg-emerald-400' },
-    { key: 'lightningRisk', label: 'Lightning Risk', color: 'bg-amber-400' },
-    { key: 'radarNow', label: 'Radar Now (T0)', color: 'bg-cyan-400' },
-    { key: 'actualRadar', label: 'Actual Radar (Truth)', color: 'bg-blue-400' },
-    { key: 'districts', label: 'District Boundaries', color: 'bg-indigo-400' },
-    { key: 'stormCells', label: 'Storm Cell Markers', color: 'bg-rose-400' },
+    {
+      key: 'predictedRadar',
+      label: 'Predicted Radar',
+      color: 'bg-emerald-400',
+      description: 'AI-predicted storm cloud reflectivity for the selected forecast horizon.',
+    },
+    {
+      key: 'lightningRisk',
+      label: 'Lightning Risk',
+      color: 'bg-amber-400',
+      description: 'Projected strike risk heatmap.',
+    },
+    {
+      key: 'radarNow',
+      label: 'Radar Now (T0)',
+      color: 'bg-cyan-400',
+      description: 'The observed baseline radar at current time.',
+    },
+    {
+      key: 'actualRadar',
+      label: 'Actual Radar (Truth)',
+      color: 'bg-blue-400',
+      description: 'What actually occurred (used to test AI accuracy).',
+    },
+    {
+      key: 'districts',
+      label: 'District Boundaries',
+      color: 'bg-indigo-400',
+      description: 'West Bengal and Odisha administrative district polygons.',
+    },
+    {
+      key: 'stormCells',
+      label: 'Storm Cell Markers',
+      color: 'bg-rose-400',
+      description: 'Interactive storm cell tracking vectors and velocity.',
+    },
   ];
 
   return (
@@ -39,9 +69,10 @@ export default function LayerControls() {
             <button
               key={l.key}
               onClick={() => toggleLayer(l.key)}
+              title={l.description}
               className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-all ${
                 active
-                  ? 'bg-slate-800/80 text-white font-medium'
+                  ? 'bg-slate-800/80 text-white font-medium shadow-sm'
                   : 'bg-transparent text-slate-400 hover:text-slate-200'
               }`}
             >

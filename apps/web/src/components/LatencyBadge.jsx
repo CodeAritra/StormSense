@@ -1,20 +1,16 @@
 import React from 'react';
-import { Timer, Zap } from 'lucide-react';
+import { Timer } from 'lucide-react';
 
 export default function LatencyBadge({ timing, backend = 'mock' }) {
   const totalMs = timing?.total_ms ?? 78.4;
-  const inferMs = timing?.inference_ms ?? 41.2;
-  const renderMs = timing?.render_ms ?? 30.5;
-  const alertMs = timing?.alert_ms ?? 3.1;
-
   // Target is under 2 minutes (120,000 ms)
   const isTargetMet = totalMs < 120000;
 
   return (
     <div
       id="latency-badge"
-      className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-xs text-slate-300 shadow-sm border border-slate-700/60"
-      title={`Breakdown: Inference: ${inferMs}ms, Render: ${renderMs}ms, Alerts: ${alertMs}ms`}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-panel text-xs text-slate-300 shadow-sm border border-slate-700/60 flex-shrink-0"
+      title={`End-to-End Latency: ${totalMs.toFixed(1)}ms (${backend} mode)`}
     >
       <div className="flex items-center gap-1.5 font-medium">
         <span
@@ -30,12 +26,9 @@ export default function LatencyBadge({ timing, backend = 'mock' }) {
         <span className={totalMs < 500 ? 'text-emerald-400' : 'text-amber-400'}>
           {totalMs.toFixed(1)} ms
         </span>
-        <span className="text-slate-400 font-normal">(replay)</span>
-      </div>
-
-      <div className="hidden lg:flex items-center gap-1 ml-1 pl-2 border-l border-slate-700 text-[11px] text-slate-400">
-        <span className="text-slate-300">Infer:</span> {inferMs.toFixed(0)}ms
+        <span className="text-slate-400 font-normal text-[10px]">(replay)</span>
       </div>
     </div>
   );
 }
+

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Play, Pause, GitCompare, Info, ShieldCheck } from 'lucide-react';
+import { Play, Pause, ShieldCheck } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { LEAD_MINUTES } from '../types';
 
@@ -9,22 +9,18 @@ export default function TimeSlider() {
     setLeadIndex,
     isForecastAnimating,
     setIsForecastAnimating,
-    compareWithActual,
-    setCompareWithActual,
-    compareBlend,
-    setCompareBlend,
   } = useStore();
 
   // Stops: -1 (Now), 0 (+5m), 1 (+10m), ... 11 (+60m)
   const stops = [-1, ...LEAD_MINUTES.map((_, i) => i)];
 
-  // Autoplay loop animation for forecast timeline
+  // Autoplay loop animation for forecast timeline (cycles Now -> +5m -> ... -> +60m -> Now)
   useEffect(() => {
     let interval = null;
     if (isForecastAnimating) {
       interval = setInterval(() => {
-        setLeadIndex((prev) => (prev >= 11 ? 0 : prev + 1));
-      }, 900);
+        setLeadIndex((prev) => (prev >= 11 ? -1 : prev + 1));
+      }, 800);
     }
     return () => {
       if (interval) clearInterval(interval);
@@ -36,7 +32,7 @@ export default function TimeSlider() {
     if (idx === -1) {
       return { text: 'Observed Radar', level: 'Observed', color: 'text-cyan-400 bg-cyan-950/40 border-cyan-800/50' };
     }
-    const mins = LEAD_MINUTES[idx];
+    const mins = LEAD_MINUTES[idx] ?? 60;
     if (mins <= 20) {
       return { text: 'High Confidence', level: '0-20 min', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/50' };
     }
@@ -50,9 +46,9 @@ export default function TimeSlider() {
 
   return (
     <div className="w-full glass-panel border-t border-slate-800 px-6 py-3 select-none">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8">
         {/* Play Loop & Label */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+        <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start flex-shrink-0">
           <button
             id="btn-animate-forecast"
             onClick={() => setIsForecastAnimating(!isForecastAnimating)}
@@ -78,9 +74,9 @@ export default function TimeSlider() {
 
           {/* Current Lead Badge */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Forecast Horizon:</span>
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline">Forecast Horizon:</span>
             <span className="text-sm font-mono font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
-              {leadIndex === -1 ? 'Now (T0)' : `+${LEAD_MINUTES[leadIndex]} min`}
+              {leadIndex === -1 ? 'Now (T0)' : `+${LEAD_MINUTES[leadIndex] ?? 60} min`}
             </span>
           </div>
 
@@ -95,7 +91,7 @@ export default function TimeSlider() {
         </div>
 
         {/* 13-Stop Interactive Slider Track */}
-        <div className="flex-1 w-full max-w-2xl px-2">
+        <div className="flex-1 w-full max-w-3xl px-2">
           <div className="relative flex items-center justify-between">
             {/* Background connection track */}
             <div className="absolute left-0 right-0 h-1 bg-slate-800 rounded-full z-0" />
@@ -145,40 +141,6 @@ export default function TimeSlider() {
               );
             })}
           </div>
-        </div>
-
-        {/* Compare with Ground Truth Controls */}
-        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end border-t md:border-t-0 md:border-l border-slate-800/80 pt-2 md:pt-0 md:pl-4">
-          <button
-            id="btn-compare-actual"
-            onClick={() => setCompareWithActual(!compareWithActual)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-              compareWithActual
-                ? 'bg-blue-600 text-white border-blue-500 shadow-sm shadow-blue-500/30'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
-            }`}
-            title="Blend predicted radar against actual truth radar"
-          >
-            <GitCompare className="w-3.5 h-3.5" />
-            <span>Compare Actual</span>
-          </button>
-
-          {compareWithActual && (
-            <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
-              <span>Pred</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={compareBlend}
-                onChange={(e) => setCompareBlend(parseFloat(e.target.value))}
-                className="w-16 h-1 bg-slate-800 rounded appearance-none accent-blue-400 cursor-pointer"
-                title="Crossfade blend: Left = 100% Predicted, Right = 100% Actual Truth"
-              />
-              <span>Truth</span>
-            </div>
-          )}
         </div>
       </div>
     </div>

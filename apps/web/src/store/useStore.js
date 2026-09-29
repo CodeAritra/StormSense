@@ -22,7 +22,12 @@ export const useStore = create((set, get) => ({
   // leadIndex: -1 means "Now", 0..11 means +5m..+60m
   leadIndex: 0,
   isForecastAnimating: false,
-  setLeadIndex: (leadIndex) => set({ leadIndex }),
+  setLeadIndex: (updaterOrVal) =>
+    set((state) => {
+      const next = typeof updaterOrVal === 'function' ? updaterOrVal(state.leadIndex) : updaterOrVal;
+      const safeNum = Number.isFinite(next) ? next : 0;
+      return { leadIndex: Math.min(11, Math.max(-1, safeNum)) };
+    }),
   setIsForecastAnimating: (isForecastAnimating) => set({ isForecastAnimating }),
 
   // Forecast & Overlays

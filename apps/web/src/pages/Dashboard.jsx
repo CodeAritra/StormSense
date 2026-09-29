@@ -77,10 +77,10 @@ export default function Dashboard() {
         }
       } else if (e.code === 'ArrowRight') {
         e.preventDefault();
-        setLeadIndex(Math.min(11, leadIndex + 1));
+        setLeadIndex((prev) => Math.min(11, prev + 1));
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
-        setLeadIndex(Math.max(-1, leadIndex - 1));
+        setLeadIndex((prev) => Math.max(-1, prev - 1));
       }
     };
 
