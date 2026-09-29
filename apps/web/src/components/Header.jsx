@@ -32,6 +32,12 @@ export default function Header() {
   // IST is UTC + 5:30
   const istDate = new Date(simDate.getTime() + 5.5 * 60 * 60 * 1000);
   const istString = istDate.toISOString().substring(11, 16) + ' IST';
+  const dateString = simDate.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 
   const handleTogglePlay = async () => {
     try {
@@ -143,21 +149,20 @@ export default function Header() {
             )}
           </button>
 
-          {/* Speed Buttons */}
-          <div className="hidden sm:flex items-center border-l border-slate-800 pl-1 ml-0.5">
-            {[1.0, 2.0, 4.0].map((s) => (
-              <button
-                key={s}
-                onClick={() => handleSpeedChange(s)}
-                className={`px-1.5 py-1 text-[11px] font-mono rounded transition-colors ${
-                  speed === s
-                    ? 'bg-slate-800 text-cyan-400 font-bold'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {s}x
-              </button>
-            ))}
+          {/* Speed Dropdown */}
+          <div className="flex items-center border-l border-slate-800 pl-1.5 ml-0.5">
+            <select
+              id="speed-select"
+              value={speed}
+              onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
+              className="bg-transparent text-cyan-400 font-mono text-[11px] font-bold focus:outline-none cursor-pointer py-1 px-1 rounded hover:bg-slate-800/80 transition-colors"
+              title="Replay playback speed"
+            >
+              <option value="0.5" className="bg-slate-900 text-white">0.5x</option>
+              <option value="1" className="bg-slate-900 text-white">1.0x</option>
+              <option value="2" className="bg-slate-900 text-white">2.0x</option>
+              <option value="4" className="bg-slate-900 text-white">4.0x</option>
+            </select>
           </div>
 
           <div className="px-1.5 text-[10px] font-mono text-slate-400 border-l border-slate-800 hidden xs:block">
@@ -165,10 +170,12 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Simulation Clock */}
-        <div className="hidden xl:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
-          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+        {/* Simulation Date & Clock */}
+        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs shadow-inner">
+          <Clock className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
           <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="font-bold text-amber-300 text-xs">{dateString}</span>
+            <span className="text-slate-600 font-bold">•</span>
             <span className="font-bold text-white text-xs">{istString}</span>
             <span className="text-slate-400 text-[10px]">({utcString})</span>
           </div>
@@ -180,24 +187,6 @@ export default function Header() {
         {/* Latency badge */}
         <div className="hidden sm:block">
           <LatencyBadge timing={forecast?.timing} backend={backend} />
-        </div>
-
-        {/* Backend badge */}
-        <div
-          id="backend-badge"
-          className={`hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-mono font-semibold border flex-shrink-0 ${
-            backend === 'onnx'
-              ? 'bg-violet-950/40 text-violet-300 border-violet-700/60'
-              : 'bg-cyan-950/40 text-cyan-300 border-cyan-800/60'
-          }`}
-          title={
-            backend === 'onnx'
-              ? 'ONNX Runtime CPU Inference Active'
-              : 'Mock Inference Active (Swappable with models/nowcast.onnx)'
-          }
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-current" />
-          <span>backend:{backend}</span>
         </div>
 
         {/* Page Switcher */}
