@@ -279,7 +279,21 @@ export default function MapView() {
       visible,
       beforeLayerId,
     ) => {
-      if (!url || !m) return;
+      if (!m) return;
+
+      const layerExists = Boolean(m.getLayer(layerId));
+
+      // If toggled off or no image URL, immediately ensure layer is hidden
+      if (!visible || !url) {
+        if (layerExists) {
+          try {
+            m.setLayoutProperty(layerId, "visibility", "none");
+            m.setPaintProperty(layerId, "raster-opacity", 0);
+          } catch (e) {}
+        }
+        return;
+      }
+
       const fullUrl = api.getOverlayUrl(url);
 
       try {
@@ -316,11 +330,7 @@ export default function MapView() {
         }
 
         if (m.getLayer(layerId)) {
-          m.setLayoutProperty(
-            layerId,
-            "visibility",
-            visible ? "visible" : "none",
-          );
+          m.setLayoutProperty(layerId, "visibility", "visible");
           m.setPaintProperty(layerId, "raster-opacity", opacity);
         }
       } catch (err) {
@@ -328,54 +338,43 @@ export default function MapView() {
       }
     };
 
-    // Calculate opacities with comparison crossfade
-    let predOpacity = overlayOpacity;
-    let actualOpacity = overlayOpacity;
-
-    if (compareWithActual) {
-      predOpacity = overlayOpacity * (1.0 - compareBlend);
-      actualOpacity = overlayOpacity * compareBlend;
-    }
-
-    // 1. Radar Now (T0)
+    // 1. Radar Now (T0 - Baseline observed Doppler radar)
     updateOrAddImageLayer(
       "vil-now-src",
       "vil-now-layer",
       vilNowUrl,
       overlayOpacity * 0.9,
-      isNow
-        ? layerVisibility.radarNow
-        : layerVisibility.radarNow && !layerVisibility.predictedRadar,
+      Boolean(layerVisibility.radarNow),
       "districts-line",
     );
 
-    // 2. Predicted Radar (+5 to +60 min)
+    // 2. Predicted Radar (AI-predicted convective cloud reflectivity)
     updateOrAddImageLayer(
       "vil-pred-src",
       "vil-pred-layer",
       vilPredUrl,
-      predOpacity,
-      !isNow && layerVisibility.predictedRadar,
+      overlayOpacity,
+      Boolean(layerVisibility.predictedRadar),
       "districts-line",
     );
 
-    // 3. Actual Truth Radar (for verification)
+    // 3. Actual Truth Radar (for AI verification)
     updateOrAddImageLayer(
       "vil-actual-src",
       "vil-actual-layer",
       vilActualUrl,
-      actualOpacity,
-      layerVisibility.actualRadar || compareWithActual,
+      overlayOpacity,
+      Boolean(layerVisibility.actualRadar),
       "districts-line",
     );
 
-    // 4. Lightning Risk Overlay
+    // 4. Lightning Risk Overlay (Projected strike risk heatmap)
     updateOrAddImageLayer(
       "lght-src",
       "lght-layer",
       lghtUrl,
       overlayOpacity * 0.95,
-      layerVisibility.lightningRisk,
+      Boolean(layerVisibility.lightningRisk),
       "districts-line",
     );
 
@@ -410,21 +409,33 @@ export default function MapView() {
       : forecast.storm_cells_by_lead?.[leadIndex] || forecast.storm_cells || [];
 
     currentCells.forEach((cell) => {
-      const el = document.createElement("div");
-      el.className = "storm-marker group cursor-pointer";
       const isVerySevere = cell.max_vil >= 0.75;
-      const borderColor = isVerySevere
-        ? "border-rose-500 text-rose-400"
-        : "border-amber-500 text-amber-400";
+      const borderColor = isVerySevere ? '#f43f5e' : '#f59e0b';
+      const textColor = isVerySevere ? '#fda4af' : '#fde68a';
+      const heading = Number.isFinite(cell.heading_deg) ? cell.heading_deg : 52;
+
+      const el = document.createElement("div");
+      el.className = "storm-cell-marker";
+      el.style.cssText = "width: 36px; height: 36px; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; user-select: none;";
 
       el.innerHTML = `
-        <div style="transform: rotate(${cell.heading_deg}deg);" class="w-8 h-8 rounded-full bg-slate-900/90 border-2 ${borderColor} shadow-lg flex items-center justify-center font-bold transition-transform duration-300 hover:scale-125">
-          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+        <div style="transform: rotate(${heading}deg); width: 32px; height: 32px; border-radius: 9999px; background: rgba(8, 13, 26, 0.92); border: 2px solid ${borderColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: ${textColor}; transition: transform 0.25s ease-out;">
+          <svg style="width: 15px; height: 15px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
         </div>
-        <div class="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-mono px-2 py-0.5 rounded shadow whitespace-nowrap border border-slate-700 pointer-events-none z-50">
-          ${cell.id}: VIL ${cell.max_vil} | ${cell.motion_kmh}km/h | ${cell.heading_deg}°
+        <div class="cell-label" style="display: none; position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #f8fafc; font-size: 10px; font-family: monospace; padding: 2px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid #334155; pointer-events: none; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+          ${cell.id}: VIL ${cell.max_vil} | ${cell.motion_kmh}km/h | ${Math.round(heading)}°
         </div>
       `;
+
+      const tooltip = el.querySelector(".cell-label");
+      el.addEventListener("mouseenter", () => {
+        if (tooltip) tooltip.style.display = "block";
+        el.style.transform = "scale(1.15)";
+      });
+      el.addEventListener("mouseleave", () => {
+        if (tooltip) tooltip.style.display = "none";
+        el.style.transform = "scale(1)";
+      });
 
       el.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -438,7 +449,10 @@ export default function MapView() {
         }
       });
 
-      const marker = new maplibregl.Marker({ element: el })
+      const marker = new maplibregl.Marker({
+        element: el,
+        anchor: "center",
+      })
         .setLngLat([cell.lon, cell.lat])
         .addTo(map.current);
 
