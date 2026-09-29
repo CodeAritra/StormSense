@@ -52,10 +52,10 @@ export default function AlertPanel() {
                 key={alert.id}
                 className={`p-3 rounded-xl border transition-all ${
                   isSevere
-                    ? 'bg-rose-950/25 border-rose-800/60 shadow-sm shadow-rose-950/40'
+                    ? 'bg-rose-950/40 border-rose-600/80 shadow-sm shadow-rose-950/40'
                     : isWarning
-                    ? 'bg-amber-950/25 border-amber-800/60'
-                    : 'bg-yellow-950/20 border-yellow-800/50'
+                    ? 'bg-orange-950/40 border-orange-600/80 shadow-sm shadow-orange-950/30'
+                    : 'bg-yellow-950/35 border-yellow-400/70 shadow-sm shadow-yellow-950/20'
                 }`}
               >
                 {/* Top Row: District & Severity Badge */}
@@ -72,10 +72,10 @@ export default function AlertPanel() {
                     <span
                       className={`text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded border ${
                         isSevere
-                          ? 'bg-rose-950 text-rose-300 border-rose-700/80 animate-pulse'
+                          ? 'bg-rose-950 text-rose-300 border-rose-600 animate-pulse'
                           : isWarning
-                          ? 'bg-amber-950 text-amber-300 border-amber-700/80'
-                          : 'bg-yellow-950 text-yellow-300 border-yellow-700/80'
+                          ? 'bg-orange-950 text-orange-300 border-orange-600'
+                          : 'bg-yellow-950 text-yellow-300 border-yellow-400'
                       }`}
                     >
                       {alert.severity}

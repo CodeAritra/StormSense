@@ -49,6 +49,7 @@ class ForecastResponse(BaseModel):
     storm_cells: List[StormCell] = []
     storm_cells_now: Optional[List[StormCell]] = None
     storm_cells_by_lead: Optional[List[List[StormCell]]] = None
+    district_severities: Optional[Dict[str, Any]] = None
     explain: Dict[str, float]
     timing: Timing
     backend: str

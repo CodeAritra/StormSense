@@ -28,7 +28,7 @@ from .inference.base import Nowcaster
 from .inference.mock import MockNowcaster
 from .inference.onnx_backend import OnnxNowcaster
 from .render import array_to_png_bytes, extract_storm_cells
-from .alerts import compute_alerts, build_cap_xml
+from .alerts import compute_alerts, compute_district_severities, build_cap_xml
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("stormsense.api")
@@ -215,7 +215,9 @@ async def ws_replay(websocket: WebSocket):
 def run_forecast(event_id: str, index: int) -> Dict[str, Any]:
     cache_key = f"{event_id}-{index}"
     if cache_key in FORECAST_CACHE:
-        return FORECAST_CACHE[cache_key]
+        cached = FORECAST_CACHE[cache_key]
+        if "district_severities" in cached and "storm_cells_by_lead" in cached:
+            return cached
         
     t_start = time.perf_counter()
     arrays = load_event_arrays(event_id)
@@ -263,6 +265,7 @@ def run_forecast(event_id: str, index: int) -> Dict[str, Any]:
     # Alert calculation timing
     t_alert_start = time.perf_counter()
     alerts = compute_alerts(event_id, idx, lght_pred, vil_pred, bounds)
+    district_severities = compute_district_severities(lght_pred, vil_pred, vil_now, bounds)
     t_alert_end = time.perf_counter()
     alert_ms = round((t_alert_end - t_alert_start) * 1000, 2)
     
@@ -295,6 +298,7 @@ def run_forecast(event_id: str, index: int) -> Dict[str, Any]:
         "storm_cells": [c.model_dump() for c in storm_cells_now],
         "storm_cells_now": [c.model_dump() for c in storm_cells_now],
         "storm_cells_by_lead": storm_cells_by_lead,
+        "district_severities": district_severities,
         "explain": explain,
         "timing": {
             "inference_ms": inference_ms,

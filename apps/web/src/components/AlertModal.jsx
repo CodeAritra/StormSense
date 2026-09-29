@@ -53,8 +53,8 @@ export default function AlertModal() {
                 activeModalAlert.severity === 'severe'
                   ? 'bg-rose-500 animate-ping'
                   : activeModalAlert.severity === 'warning'
-                  ? 'bg-amber-500'
-                  : 'bg-yellow-500'
+                  ? 'bg-orange-500'
+                  : 'bg-yellow-400'
               }`}
             />
             <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -63,10 +63,10 @@ export default function AlertModal() {
             <span
               className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
                 activeModalAlert.severity === 'severe'
-                  ? 'bg-rose-950 text-rose-300 border-rose-800'
+                  ? 'bg-rose-950 text-rose-300 border-rose-600'
                   : activeModalAlert.severity === 'warning'
-                  ? 'bg-amber-950 text-amber-300 border-amber-800'
-                  : 'bg-yellow-950 text-yellow-300 border-yellow-800'
+                  ? 'bg-orange-950 text-orange-300 border-orange-600'
+                  : 'bg-yellow-950 text-yellow-300 border-yellow-400'
               }`}
             >
               {activeModalAlert.severity}

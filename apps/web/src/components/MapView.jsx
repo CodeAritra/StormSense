@@ -1,15 +1,69 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "../store/useStore";
 import { api } from "../api/client";
 import LayerControls from "./LayerControls";
 
+// High-contrast, visibly distinct 4-level color scheme
+const DISTRICT_SEVERITY_STYLES = {
+  normal: {
+    name: "Normal",
+    fill: "#0284c7", // Sky Blue
+    fillOpacity: 0.14,
+    line: "#38bdf8",
+    lineOpacity: 0.65,
+    lineWidth: 1.2,
+    badgeBg: "rgba(2, 132, 199, 0.2)",
+    badgeBorder: "#0284c7",
+    textColor: "#38bdf8",
+    indicatorDot: "#38bdf8",
+  },
+  watch: {
+    name: "Watch (Advisory)",
+    fill: "#facc15", // Electric Lemon / Bright Canary Yellow (High luminance, pure yellow)
+    fillOpacity: 0.35,
+    line: "#fde047",
+    lineOpacity: 0.9,
+    lineWidth: 2.0,
+    badgeBg: "rgba(250, 204, 21, 0.25)",
+    badgeBorder: "#facc15",
+    textColor: "#facc15",
+    indicatorDot: "#facc15",
+  },
+  warning: {
+    name: "Warning (High)",
+    fill: "#ea580c", // Deep Tangelo Orange / Vivid Red-Orange (Clearly distinct from yellow)
+    fillOpacity: 0.42,
+    line: "#f97316",
+    lineOpacity: 0.95,
+    lineWidth: 2.2,
+    badgeBg: "rgba(234, 88, 12, 0.25)",
+    badgeBorder: "#ea580c",
+    textColor: "#fb923c",
+    indicatorDot: "#f97316",
+  },
+  severe: {
+    name: "Severe (Emergency)",
+    fill: "#e11d48", // Crimson Neon Red (Emergency danger)
+    fillOpacity: 0.50,
+    line: "#f43f5e",
+    lineOpacity: 1.0,
+    lineWidth: 2.5,
+    badgeBg: "rgba(225, 29, 72, 0.3)",
+    badgeBorder: "#e11d48",
+    textColor: "#fda4af",
+    indicatorDot: "#f43f5e",
+  },
+};
+
 export default function MapView() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [mapReady, setMapReady] = useState(false);
+  const [districtsLoaded, setDistrictsLoaded] = useState(false);
   const markersRef = useRef([]);
+  const currentSeveritiesRef = useRef({});
 
   const {
     forecast,
@@ -115,8 +169,8 @@ export default function MapView() {
               type: "fill",
               source: "districts-source",
               paint: {
-                "fill-color": "#06b6d4",
-                "fill-opacity": 0.15,
+                "fill-color": DISTRICT_SEVERITY_STYLES.normal.fill,
+                "fill-opacity": DISTRICT_SEVERITY_STYLES.normal.fillOpacity,
               },
             });
 
@@ -125,14 +179,16 @@ export default function MapView() {
               type: "line",
               source: "districts-source",
               paint: {
-                "line-color": "#38bdf8",
+                "line-color": DISTRICT_SEVERITY_STYLES.normal.line,
                 "line-width": 1.5,
-                "line-opacity": 0.7,
+                "line-opacity": DISTRICT_SEVERITY_STYLES.normal.lineOpacity,
                 "line-dasharray": [2, 1],
               },
             });
 
-            // Hover tooltip on districts
+            setDistrictsLoaded(true);
+
+            // Hover tooltip on districts showing district name & active threat level
             const popup = new maplibregl.Popup({
               closeButton: false,
               closeOnClick: false,
@@ -142,13 +198,27 @@ export default function MapView() {
               mapInstance.getCanvas().style.cursor = "pointer";
               if (e.features && e.features.length > 0) {
                 const props = e.features[0].properties;
+                const distId = props.id || props.district_id;
+                const sev = currentSeveritiesRef.current[distId] || "normal";
+                const sevStyle =
+                  DISTRICT_SEVERITY_STYLES[sev] ||
+                  DISTRICT_SEVERITY_STYLES.normal;
+
                 popup
                   .setLngLat(e.lngLat)
                   .setHTML(
-                    `<div class="text-xs">
-                      <div class="font-bold text-white">${props.name_en} (${props.name_bn || ""})</div>
-                      <div class="text-[11px] text-slate-300">Pop: ${(props.population / 1000000).toFixed(1)}M | Farmland: ${Math.round(props.farmland_pct * 100)}%</div>
-                    </div>`,
+                    `<div style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; min-width: 160px; padding: 2px;">
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-weight: 700; color: #ffffff; font-size: 12px;">${props.name_en} (${props.name_bn || ""})</span>
+                      </div>
+                      <div style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; background: ${sevStyle.badgeBg}; border: 1px solid ${sevStyle.badgeBorder}; color: ${sevStyle.textColor}; font-weight: 700; font-size: 10px; text-transform: uppercase; margin-bottom: 6px;">
+                        <span style="width: 6px; height: 6px; border-radius: 9999px; background: ${sevStyle.indicatorDot};"></span>
+                        <span>${sevStyle.name}</span>
+                      </div>
+                      <div style="color: #94a3b8; font-size: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">
+                        Pop: ${(props.population / 1000000).toFixed(1)}M &bull; Farmland: ${Math.round(props.farmland_pct * 100)}%
+                      </div>
+                    </div>`
                   )
                   .addTo(mapInstance);
               }
@@ -159,7 +229,7 @@ export default function MapView() {
               popup.remove();
             });
 
-            // Click district to open alert or zoom in
+            // Click district to open alert modal or zoom in
             mapInstance.on("click", "districts-fill", (e) => {
               if (e.features && e.features.length > 0) {
                 const props = e.features[0].properties;
@@ -209,54 +279,92 @@ export default function MapView() {
     };
   }, []);
 
-  // 2. Update District Colors based on current alert severities
+  // 2. Update District Colors dynamically based on forecast horizon (leadIndex)
   useEffect(() => {
-    if (!map.current || !mapReady || !map.current.getSource("districts-source"))
-      return;
+    if (!map.current || !mapReady || !districtsLoaded) return;
+    const m = map.current;
+    if (!m.getSource("districts-source") || !m.getLayer("districts-fill")) return;
 
     try {
-      if (alerts && alerts.length > 0) {
-        const alertMap = {};
+      const isNow = leadIndex === -1;
+      const sevMap = isNow
+        ? forecast?.district_severities?.now || {}
+        : forecast?.district_severities?.leads?.[leadIndex] || {};
+
+      const alertMap = { ...sevMap };
+      // Fallback if district_severities is not yet populated
+      if (Object.keys(alertMap).length === 0 && alerts && alerts.length > 0) {
         alerts.forEach((a) => {
           alertMap[a.district_id] = a.severity;
         });
+      }
 
-        const colorCases = ["case"];
-        const opacityCases = ["case"];
+      currentSeveritiesRef.current = alertMap;
+      const entries = Object.entries(alertMap);
 
-        Object.entries(alertMap).forEach(([distId, sev]) => {
-          colorCases.push(["==", ["get", "id"], distId]);
-          if (sev === "severe")
-            colorCases.push("#f43f5e"); // crimson
-          else if (sev === "warning")
-            colorCases.push("#f59e0b"); // amber
-          else colorCases.push("#eab308"); // yellow
-
-          opacityCases.push(["==", ["get", "id"], distId]);
-          opacityCases.push(0.35);
-        });
-
-        colorCases.push("#06b6d4"); // fallback
-        opacityCases.push(0.12);
-
-        map.current.setPaintProperty(
+      if (entries.length === 0) {
+        m.setPaintProperty(
           "districts-fill",
           "fill-color",
-          colorCases,
+          DISTRICT_SEVERITY_STYLES.normal.fill,
         );
-        map.current.setPaintProperty(
+        m.setPaintProperty(
           "districts-fill",
           "fill-opacity",
-          opacityCases,
+          DISTRICT_SEVERITY_STYLES.normal.fillOpacity,
         );
-      } else {
-        map.current.setPaintProperty("districts-fill", "fill-color", "#06b6d4");
-        map.current.setPaintProperty("districts-fill", "fill-opacity", 0.12);
+        m.setPaintProperty(
+          "districts-line",
+          "line-color",
+          DISTRICT_SEVERITY_STYLES.normal.line,
+        );
+        m.setPaintProperty(
+          "districts-line",
+          "line-opacity",
+          DISTRICT_SEVERITY_STYLES.normal.lineOpacity,
+        );
+        return;
       }
+
+      const fillColorExpr = [
+        "match",
+        ["coalesce", ["get", "id"], ["get", "district_id"], ""],
+      ];
+      const fillOpacityExpr = [
+        "match",
+        ["coalesce", ["get", "id"], ["get", "district_id"], ""],
+      ];
+      const lineColorExpr = [
+        "match",
+        ["coalesce", ["get", "id"], ["get", "district_id"], ""],
+      ];
+      const lineOpacityExpr = [
+        "match",
+        ["coalesce", ["get", "id"], ["get", "district_id"], ""],
+      ];
+
+      entries.forEach(([distId, sev]) => {
+        const conf =
+          DISTRICT_SEVERITY_STYLES[sev] || DISTRICT_SEVERITY_STYLES.normal;
+        fillColorExpr.push(distId, conf.fill);
+        fillOpacityExpr.push(distId, conf.fillOpacity);
+        lineColorExpr.push(distId, conf.line);
+        lineOpacityExpr.push(distId, conf.lineOpacity);
+      });
+
+      fillColorExpr.push(DISTRICT_SEVERITY_STYLES.normal.fill);
+      fillOpacityExpr.push(DISTRICT_SEVERITY_STYLES.normal.fillOpacity);
+      lineColorExpr.push(DISTRICT_SEVERITY_STYLES.normal.line);
+      lineOpacityExpr.push(DISTRICT_SEVERITY_STYLES.normal.lineOpacity);
+
+      m.setPaintProperty("districts-fill", "fill-color", fillColorExpr);
+      m.setPaintProperty("districts-fill", "fill-opacity", fillOpacityExpr);
+      m.setPaintProperty("districts-line", "line-color", lineColorExpr);
+      m.setPaintProperty("districts-line", "line-opacity", lineOpacityExpr);
     } catch (e) {
-      // Style may be transitioning
+      console.warn("District paint update error:", e);
     }
-  }, [alerts, mapReady]);
+  }, [forecast, leadIndex, alerts, mapReady, districtsLoaded]);
 
   // 3. Update Raster Overlays (Radar Now, Predicted Radar, Lightning, Actual Truth)
   useEffect(() => {
@@ -406,17 +514,22 @@ export default function MapView() {
     const isNow = leadIndex === -1;
     const currentCells = isNow
       ? forecast.storm_cells_now || forecast.storm_cells || []
-      : forecast.storm_cells_by_lead?.[leadIndex] || forecast.storm_cells || [];
+      : forecast.storm_cells_by_lead?.[leadIndex] ||
+        forecast.storm_cells ||
+        [];
 
     currentCells.forEach((cell) => {
       const isVerySevere = cell.max_vil >= 0.75;
-      const borderColor = isVerySevere ? '#f43f5e' : '#f59e0b';
-      const textColor = isVerySevere ? '#fda4af' : '#fde68a';
-      const heading = Number.isFinite(cell.heading_deg) ? cell.heading_deg : 52;
+      const borderColor = isVerySevere ? "#f43f5e" : "#f59e0b";
+      const textColor = isVerySevere ? "#fda4af" : "#fde68a";
+      const heading = Number.isFinite(cell.heading_deg)
+        ? cell.heading_deg
+        : 52;
 
       const el = document.createElement("div");
       el.className = "storm-cell-marker";
-      el.style.cssText = "width: 36px; height: 36px; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; user-select: none;";
+      el.style.cssText =
+        "width: 36px; height: 36px; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; user-select: none;";
 
       el.innerHTML = `
         <div style="transform: rotate(${heading}deg); width: 32px; height: 32px; border-radius: 9999px; background: rgba(8, 13, 26, 0.92); border: 2px solid ${borderColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: ${textColor}; transition: transform 0.25s ease-out;">
@@ -488,8 +601,8 @@ export default function MapView() {
         <LayerControls />
       </div>
 
-      {/* Floating Radar & Lightning Colormap Legends (Bottom Right) */}
-      <div className="absolute bottom-6 right-4 z-10 glass-panel rounded-xl p-3 border border-slate-800 text-[10px] space-y-2.5 shadow-xl select-none">
+      {/* Floating Radar, Lightning & District Warning Colormap Legends (Bottom Right) */}
+      <div className="absolute bottom-6 right-4 z-10 glass-panel rounded-xl p-3 border border-slate-800 text-[10px] space-y-2.5 shadow-xl select-none w-64">
         <div>
           <div className="text-slate-300 font-semibold mb-1 flex justify-between">
             <span>Radar Storm Intensity (VIL)</span>
@@ -523,6 +636,44 @@ export default function MapView() {
               }}
             />
             <span className="text-[9px] text-slate-400">&gt;85%</span>
+          </div>
+        </div>
+
+        {/* 4 Distinct Warning Levels Legend */}
+        <div className="pt-1 border-t border-slate-800/70">
+          <div className="text-slate-300 font-semibold mb-1.5 flex justify-between">
+            <span>District Warning Level</span>
+            <span className="font-mono text-slate-400">IMD Alert</span>
+          </div>
+          <div className="grid grid-cols-4 gap-1 text-center font-semibold text-[9px]">
+            <div
+              className="flex items-center justify-center gap-1 bg-sky-950/40 border border-sky-600/50 rounded px-1 py-1 text-sky-300 shadow-sm"
+              title="Normal - Calm, no severe thunderstorm activity"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 flex-shrink-0" />
+              <span>Normal</span>
+            </div>
+            <div
+              className="flex items-center justify-center gap-1 bg-yellow-950/40 border border-yellow-400/70 rounded px-1 py-1 text-yellow-300 shadow-sm"
+              title="Watch - Be Updated (Bright Lemon Yellow)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 flex-shrink-0" />
+              <span>Watch</span>
+            </div>
+            <div
+              className="flex items-center justify-center gap-1 bg-orange-950/40 border border-orange-600/80 rounded px-1 py-1 text-orange-300 shadow-sm"
+              title="Warning - Be Prepared (Deep Tangelo Orange)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+              <span>Warning</span>
+            </div>
+            <div
+              className="flex items-center justify-center gap-1 bg-rose-950/40 border border-rose-600/80 rounded px-1 py-1 text-rose-300 shadow-sm"
+              title="Severe - Take Action (Crimson Neon Red)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0 animate-pulse" />
+              <span>Severe</span>
+            </div>
           </div>
         </div>
       </div>

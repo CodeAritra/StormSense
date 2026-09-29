@@ -26,9 +26,21 @@ def load_districts() -> List[Dict[str, Any]]:
         return []
 
 def get_district_pixel_bounds(geom_coords, bounds: Bounds, grid_size: int = 128) -> Tuple[int, int, int, int]:
-    """Computes rough pixel bounding box for a district polygon."""
-    lons = [p[0] for ring in geom_coords for p in ring]
-    lats = [p[1] for ring in geom_coords for p in ring]
+    """Computes pixel bounding box for a district polygon or multipolygon."""
+    pts = []
+    def _recurse(c):
+        if len(c) == 2 and isinstance(c[0], (int, float)) and isinstance(c[1], (int, float)):
+            pts.append(c)
+        else:
+            for item in c:
+                _recurse(item)
+    _recurse(geom_coords)
+    
+    if not pts:
+        return 0, 0, 0, 0
+
+    lons = [p[0] for p in pts]
+    lats = [p[1] for p in pts]
     
     min_lon, max_lon = min(lons), max(lons)
     min_lat, max_lat = min(lats), max(lats)
@@ -98,9 +110,9 @@ def compute_alerts(
             eta_min = lead_minutes[first_idx]
             
             # Severity classification
-            if overall_peak_prob >= 0.85:
+            if overall_peak_prob >= 0.80 or overall_peak_vil >= 0.70:
                 severity = "severe"
-            elif overall_peak_prob >= 0.70:
+            elif overall_peak_prob >= 0.60 or overall_peak_vil >= 0.45:
                 severity = "warning"
             else:
                 severity = "watch"
@@ -132,6 +144,68 @@ def compute_alerts(
     severity_rank = {"severe": 0, "warning": 1, "watch": 2}
     alerts.sort(key=lambda a: (severity_rank.get(a.severity, 3), a.eta_min))
     return alerts
+
+def compute_district_severities(
+    lght_preds: np.ndarray,  # [12, 128, 128]
+    vil_preds: np.ndarray,   # [12, 128, 128]
+    vil_now: np.ndarray,     # [128, 128]
+    bounds: Bounds
+) -> Dict[str, Any]:
+    """
+    Computes per-district warning severity for T0 (now) and for each of the 12 forecast lead steps.
+    """
+    districts = load_districts()
+    now_map = {}
+    leads_maps = [{} for _ in range(12)]
+    
+    for feat in districts:
+        props = feat.get("properties", {})
+        geom = feat.get("geometry", {})
+        coords = geom.get("coordinates", [])
+        if not coords:
+            continue
+            
+        dist_id = props.get("id", "unknown")
+        y1, y2, x1, x2 = get_district_pixel_bounds(coords, bounds)
+        if y2 <= y1 or x2 <= x1:
+            now_map[dist_id] = "normal"
+            for k in range(12):
+                leads_maps[k][dist_id] = "normal"
+            continue
+            
+        # T0 Now evaluation
+        now_patch = vil_now[y1:y2, x1:x2]
+        max_now_vil = float(np.max(now_patch)) if now_patch.size > 0 else 0.0
+        if max_now_vil >= 0.65:
+            now_map[dist_id] = "severe"
+        elif max_now_vil >= 0.40:
+            now_map[dist_id] = "warning"
+        elif max_now_vil >= 0.18:
+            now_map[dist_id] = "watch"
+        else:
+            now_map[dist_id] = "normal"
+            
+        # 12 Forecast Lead steps
+        dist_lght = lght_preds[:, y1:y2, x1:x2]
+        dist_vil = vil_preds[:, y1:y2, x1:x2]
+        
+        for k in range(12):
+            lght_k = float(np.max(dist_lght[k])) if dist_lght[k].size > 0 else 0.0
+            vil_k = float(np.max(dist_vil[k])) if dist_vil[k].size > 0 else 0.0
+            
+            if lght_k >= 0.65 or vil_k >= 0.60:
+                leads_maps[k][dist_id] = "severe"
+            elif lght_k >= 0.38 or vil_k >= 0.35:
+                leads_maps[k][dist_id] = "warning"
+            elif lght_k >= 0.15 or vil_k >= 0.18:
+                leads_maps[k][dist_id] = "watch"
+            else:
+                leads_maps[k][dist_id] = "normal"
+                
+    return {
+        "now": now_map,
+        "leads": leads_maps
+    }
 
 def build_cap_xml(alert_dict: dict) -> str:
     """Constructs valid Common Alerting Protocol (CAP 1.2) XML."""
