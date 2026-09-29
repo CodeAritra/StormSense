@@ -532,22 +532,30 @@ export default function MapView() {
         "width: 36px; height: 36px; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; user-select: none;";
 
       el.innerHTML = `
-        <div style="transform: rotate(${heading}deg); width: 32px; height: 32px; border-radius: 9999px; background: rgba(8, 13, 26, 0.92); border: 2px solid ${borderColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: ${textColor}; transition: transform 0.25s ease-out;">
+        <div class="marker-icon" style="transform: rotate(${heading}deg); width: 32px; height: 32px; border-radius: 9999px; background: rgba(8, 13, 26, 0.95); border: 2px solid ${borderColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: ${textColor}; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;">
           <svg style="width: 15px; height: 15px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
         </div>
-        <div class="cell-label" style="display: none; position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #f8fafc; font-size: 10px; font-family: monospace; padding: 2px 6px; border-radius: 4px; white-space: nowrap; border: 1px solid #334155; pointer-events: none; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+        <div class="cell-label" style="display: none; position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #f8fafc; font-size: 10px; font-family: monospace; padding: 3px 7px; border-radius: 4px; white-space: nowrap; border: 1px solid #334155; pointer-events: none; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,0.6);">
           ${cell.id}: VIL ${cell.max_vil} | ${cell.motion_kmh}km/h | ${Math.round(heading)}°
         </div>
       `;
 
+      const iconEl = el.querySelector(".marker-icon");
       const tooltip = el.querySelector(".cell-label");
+
       el.addEventListener("mouseenter", () => {
         if (tooltip) tooltip.style.display = "block";
-        el.style.transform = "scale(1.15)";
+        if (iconEl) {
+          iconEl.style.transform = `rotate(${heading}deg) scale(1.22)`;
+          iconEl.style.boxShadow = `0 0 16px ${borderColor}`;
+        }
       });
       el.addEventListener("mouseleave", () => {
         if (tooltip) tooltip.style.display = "none";
-        el.style.transform = "scale(1)";
+        if (iconEl) {
+          iconEl.style.transform = `rotate(${heading}deg) scale(1)`;
+          iconEl.style.boxShadow = "0 4px 12px rgba(0,0,0,0.6)";
+        }
       });
 
       el.addEventListener("click", (e) => {
