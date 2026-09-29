@@ -55,7 +55,7 @@ DB_PATH = resolve_path(os.getenv("DB_PATH"), BASE_DIR / "stormsense.db")
 DEFAULT_BOUNDS = RegionBounds()
 REPLAY_TICK_SECONDS = float(os.getenv("REPLAY_TICK_SECONDS", "2.0"))
 ALERT_MIN_PROB = float(os.getenv("ALERT_MIN_PROB", "0.5"))
-API_PORT = int(os.getenv("API_PORT", "8000"))
+API_PORT = int(os.getenv("PORT", os.getenv("API_PORT", "8000")))
 
 CORS_ORIGINS = [
     "http://localhost:5173",

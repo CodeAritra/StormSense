@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: stormsense-api
+    runtime: docker
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: MODEL_BACKEND
+        value: onnx
+      - key: REPLAY_TICK_SECONDS
+        value: "2.0"
